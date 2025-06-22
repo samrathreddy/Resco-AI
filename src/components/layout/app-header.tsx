@@ -3,32 +3,27 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { UserMenu } from "@/components/backend/user-menu";
 import { 
   FileText, 
-  Eye, 
-  Code, 
   Download, 
-  Share2, 
-  Settings,
-  File,
+  Share2,
   Brain
 } from "lucide-react";
+import type { ApiUser } from '@/lib/api/auth-client';
 
 interface AppHeaderProps {
   hasContent: boolean;
-  fileType: 'latex' | 'pdf' | null;
+  fileType: 'pdf' | null;
   fileName?: string;
-  viewMode: 'compiled' | 'source';
-  onViewModeChange: (mode: 'compiled' | 'source') => void;
+  user: ApiUser;
 }
 
 export function AppHeader({ 
   hasContent, 
   fileType, 
   fileName, 
-  viewMode, 
-  onViewModeChange 
+  user
 }: AppHeaderProps) {
   const handleExport = () => {
     // Export functionality would be implemented here
@@ -40,46 +35,34 @@ export function AppHeader({
     console.log('Share clicked');
   };
 
-  const handleSettings = () => {
-    // Settings functionality would be implemented here
-    console.log('Settings clicked');
-  };
-
   return (
-    <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="h-16 border-b border-[#2A2A2A] bg-black/80 backdrop-blur-md relative z-20">
       <div className="flex h-full items-center justify-between px-6">
-        {/* Left: Logo and Branding */}
+        {/* Left: Logo and File Info */}
         <div className="flex items-center space-x-6">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <Brain className="w-5 h-5 text-white" />
-            </div>
             <div>
-              <h1 className="text-lg font-bold text-foreground">Resco</h1>
-              <p className="text-xs text-muted-foreground">AI Resume Editor</p>
+              <h1 className="text-lg font-bold text-white">Resco</h1>
+              <p className="text-xs text-[#B7B7B7]">AI Resume Editor</p>
             </div>
           </div>
 
           {hasContent && (
             <>
-              <Separator orientation="vertical" className="h-6" />
+              <Separator orientation="vertical" className="h-6 bg-[#2A2A2A]" />
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2">
-                  {fileType === 'pdf' ? (
-                    <File className="w-4 h-4 text-red-600" />
-                  ) : (
-                    <FileText className="w-4 h-4 text-blue-600" />
-                  )}
+                  <FileText className="w-4 h-4 text-red-400" />
                   <div>
-                    <p className="text-sm font-medium text-foreground">
+                    <p className="text-sm font-medium text-white">
                       {fileName || 'Untitled Resume'}
                     </p>
                     <div className="flex items-center space-x-2">
-                      <Badge variant={fileType === 'pdf' ? 'default' : 'secondary'} className="text-xs">
-                        {fileType?.toUpperCase()}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {fileType === 'pdf' ? 'Direct Edit' : 'LaTeX Compilation'}
+                      <Badge 
+                        variant="default"
+                        className="text-xs bg-red-600 text-white"
+                      >
+                        PDF
                       </Badge>
                     </div>
                   </div>
@@ -89,74 +72,12 @@ export function AppHeader({
           )}
         </div>
 
-        {/* Center: View Mode Controls (only for LaTeX) */}
-        {hasContent && fileType === 'latex' && (
-          <div className="flex items-center space-x-4">
-            <ToggleGroup 
-              type="single" 
-              value={viewMode} 
-              onValueChange={(value: string) => {
-                if (value) onViewModeChange(value as 'compiled' | 'source');
-              }}
-              className="border border-border rounded-lg"
-            >
-              <ToggleGroupItem 
-                value="compiled" 
-                className="data-[state=on]:bg-accent data-[state=on]:text-accent-foreground gap-2"
-              >
-                <Eye className="w-4 h-4" />
-                <span className="hidden sm:inline">Compiled</span>
-              </ToggleGroupItem>
-              <ToggleGroupItem 
-                value="source"
-                className="data-[state=on]:bg-accent data-[state=on]:text-accent-foreground gap-2"
-              >
-                <Code className="w-4 h-4" />
-                <span className="hidden sm:inline">Source</span>
-              </ToggleGroupItem>
-            </ToggleGroup>
-          </div>
-        )}
-
         {/* Right: Action Buttons */}
         <div className="flex items-center space-x-2">
-          {hasContent ? (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleShare}
-                className="gap-2"
-              >
-                <Share2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Share</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExport}
-                className="gap-2"
-              >
-                <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">Export</span>
-              </Button>
-            </>
-          ) : (
-            <div className="text-sm text-muted-foreground">
-              Upload a resume to get started
-            </div>
-          )}
+
+          <Separator orientation="vertical" className="h-6 bg-[#2A2A2A]" />
           
-          <Separator orientation="vertical" className="h-6" />
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleSettings}
-          >
-            <Settings className="w-4 h-4" />
-          </Button>
+          <UserMenu user={user} />
         </div>
       </div>
     </header>

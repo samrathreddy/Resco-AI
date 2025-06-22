@@ -28,7 +28,7 @@ export function FinalCta() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Link href="/app">
+            <Link href="/auth/signup">
               <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-lg px-8 py-4">
                 Beat ATS & Get Interviews
               </Button>

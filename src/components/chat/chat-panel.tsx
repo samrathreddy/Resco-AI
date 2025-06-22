@@ -2,23 +2,15 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { 
   Send, 
-  Upload, 
-  File, 
-  MessageSquare, 
   Sparkles, 
   FileText,
-  Edit3,
   Brain,
   Target
 } from "lucide-react";
-import { LatexFileUpload } from "@/components/ui/latex-file-upload";
 
 interface Message {
   id: string;
@@ -28,16 +20,10 @@ interface Message {
   type?: 'text' | 'file-upload' | 'suggestion';
 }
 
-interface FileData {
-  file: File;
-  content: string | null;
-  type: 'latex' | 'pdf';
-}
-
 interface ChatPanelProps {
-  onFileUpload: (file: File, content: string | null, type: 'latex' | 'pdf') => void;
+  onFileUpload: (file: File, content: string | null, type: 'pdf') => void;
   hasContent: boolean;
-  fileType: 'latex' | 'pdf' | null;
+  fileType: 'pdf' | null;
   className?: string;
 }
 
@@ -45,7 +31,6 @@ export function ChatPanel({ onFileUpload, hasContent, fileType, className }: Cha
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [showUploadDialog, setShowUploadDialog] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -62,8 +47,8 @@ export function ChatPanel({ onFileUpload, hasContent, fileType, className }: Cha
       const welcomeMessage: Message = {
         id: 'welcome',
         content: hasContent 
-          ? `Great! I can see your ${fileType?.toUpperCase()} resume is loaded. What would you like me to help you improve?`
-          : "Hello! I'm your AI resume assistant. Upload your resume (LaTeX or PDF) and I'll help you improve it with targeted suggestions.",
+          ? `Great! I can see your PDF resume is loaded. What would you like me to help you improve?`
+          : "Hello! I'm your AI resume assistant. Upload your PDF resume using the upload button in the preview panel, and I'll help you improve it with targeted suggestions.",
         sender: 'ai',
         timestamp: new Date(),
         type: 'text'
@@ -72,26 +57,23 @@ export function ChatPanel({ onFileUpload, hasContent, fileType, className }: Cha
     }
   }, [hasContent, fileType, messages.length]);
 
-  const handleFileUpload = (file: File, content: string | null, type: 'latex' | 'pdf') => {
+  const handleFileUpload = (file: File, content: string | null, type: 'pdf') => {
     // Add file upload message
     const fileMessage: Message = {
       id: `file-${Date.now()}`,
-      content: `Uploaded ${type.toUpperCase()} file: ${file.name}`,
+      content: `Uploaded PDF file: ${file.name}`,
       sender: 'user',
       timestamp: new Date(),
       type: 'file-upload'
     };
 
     setMessages(prev => [...prev, fileMessage]);
-    setShowUploadDialog(false);
 
     // Simulate AI response
     setTimeout(() => {
       const aiResponse: Message = {
         id: `ai-${Date.now()}`,
-        content: type === 'pdf' 
-          ? `Perfect! I've loaded your PDF resume. I can now help you edit specific sections while preserving your original formatting. Try asking me to "improve the work experience section" or "make the skills more impactful".`
-          : `Excellent! Your LaTeX resume has been parsed successfully. I can see all your sections and content. What would you like me to help you improve? I can enhance descriptions, optimize for ATS, or update specific sections.`,
+        content: `Perfect! I've loaded your PDF resume in our beautiful viewer. I can now help you edit specific sections while preserving your original formatting. Try asking me to "improve the work experience section" or "make the skills more impactful".`,
         sender: 'ai',
         timestamp: new Date(),
         type: 'text'
@@ -123,8 +105,8 @@ export function ChatPanel({ onFileUpload, hasContent, fileType, className }: Cha
       const aiResponse: Message = {
         id: `ai-${Date.now()}`,
         content: hasContent 
-          ? `I understand you want to "${inputMessage}". Let me analyze your ${fileType} resume and provide specific suggestions for improvement.`
-          : "I'd be happy to help with that! First, please upload your resume so I can provide personalized suggestions.",
+          ? `I understand you want to "${inputMessage}". Let me analyze your PDF resume and provide specific suggestions for improvement.`
+          : "I'd be happy to help with that! First, please upload your PDF resume using the upload button in the preview panel so I can provide personalized suggestions.",
         sender: 'ai',
         timestamp: new Date(),
         type: 'text'
@@ -148,71 +130,20 @@ export function ChatPanel({ onFileUpload, hasContent, fileType, className }: Cha
   };
 
   const suggestions = hasContent 
-    ? fileType === 'pdf'
-      ? [
-          "Edit the experience section",
-          "Improve technical skills formatting", 
-          "Update contact information",
-          "Enhance project descriptions"
-        ]
-      : [
-          "Make descriptions more quantified",
-          "Optimize for ATS scanning",
-          "Improve action verbs",
-          "Add missing keywords"
-        ]
+    ? [
+        "Edit the experience section",
+        "Improve technical skills", 
+        "Update contact information",
+        "Enhance project descriptions"
+      ]
     : [
         "Upload my resume",
-        "Start with a template",
-        "Help me choose the best format",
-        "Show me resume best practices"
+        "Show me best practices",
+        "Help me get started"
       ];
 
   return (
-    <div className={`flex flex-col h-full bg-white ${className}`}>
-      {/* Header */}
-      <div className="p-4 border-b border-gray-200 bg-gray-50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Brain className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">AI Resume Assistant</h2>
-              <p className="text-sm text-gray-600">
-                {hasContent ? `Working with your ${fileType?.toUpperCase()} resume` : 'Ready to help improve your resume'}
-              </p>
-            </div>
-          </div>
-          
-          <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Upload className="w-4 h-4 mr-2" />
-                Upload
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Upload Resume</DialogTitle>
-              </DialogHeader>
-              <LatexFileUpload onFileUpload={handleFileUpload} />
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {hasContent && (
-          <div className="mt-3 flex items-center space-x-2">
-            <Badge variant="secondary" className="text-xs">
-              {fileType === 'pdf' ? 'PDF Editor Mode' : 'LaTeX Parser Mode'}
-            </Badge>
-            <Badge variant="outline" className="text-xs">
-              {fileType === 'pdf' ? 'Direct Editing' : 'Code Generation'}
-            </Badge>
-          </div>
-        )}
-      </div>
-
+    <div className={`flex flex-col h-full bg-black ${className}`}>
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
@@ -223,13 +154,13 @@ export function ChatPanel({ onFileUpload, hasContent, fileType, className }: Cha
             <div
               className={`max-w-[80%] rounded-lg px-4 py-2 ${
                 message.sender === 'user'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-900'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
+                  : 'bg-gradient-to-r from-[#2A2A2A] to-[#3A3A3A] text-white border border-[#2A2A2A]'
               }`}
             >
               <div className="flex items-start space-x-2">
                 {message.sender === 'ai' && (
-                  <Sparkles className="w-4 h-4 mt-0.5 text-blue-600" />
+                  <Sparkles className="w-4 h-4 mt-0.5 text-indigo-400" />
                 )}
                 <div className="flex-1">
                   {message.type === 'file-upload' && (
@@ -240,7 +171,7 @@ export function ChatPanel({ onFileUpload, hasContent, fileType, className }: Cha
                   )}
                   <p className="text-sm leading-relaxed">{message.content}</p>
                   <p className={`text-xs mt-1 ${
-                    message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
+                    message.sender === 'user' ? 'text-indigo-100' : 'text-[#B7B7B7]'
                   }`}>
                     {formatTime(message.timestamp)}
                   </p>
@@ -252,15 +183,15 @@ export function ChatPanel({ onFileUpload, hasContent, fileType, className }: Cha
 
         {isTyping && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-lg px-4 py-2">
+            <div className="bg-gradient-to-r from-[#2A2A2A] to-[#3A3A3A] rounded-lg px-4 py-2 border border-[#2A2A2A]">
               <div className="flex items-center space-x-2">
-                <Sparkles className="w-4 h-4 text-blue-600" />
+                <Sparkles className="w-4 h-4 text-indigo-400" />
                 <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
+                  <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-100"></div>
+                  <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-200"></div>
                 </div>
-                <span className="text-sm text-gray-600">AI is thinking...</span>
+                <span className="text-sm text-[#B7B7B7]">AI is thinking...</span>
               </div>
             </div>
           </div>
@@ -271,9 +202,9 @@ export function ChatPanel({ onFileUpload, hasContent, fileType, className }: Cha
 
       {/* Suggestions */}
       {!isTyping && (
-        <div className="px-4 py-2 border-t border-gray-100">
+        <div className="px-4 py-2 border-t border-[#2A2A2A]">
           <div className="mb-3">
-            <h4 className="text-xs font-medium text-gray-700 mb-2 flex items-center">
+            <h4 className="text-xs font-medium text-[#B7B7B7] mb-2 flex items-center">
               <Target className="w-3 h-3 mr-1" />
               Quick Actions
             </h4>
@@ -283,7 +214,7 @@ export function ChatPanel({ onFileUpload, hasContent, fileType, className }: Cha
                   key={index}
                   variant="outline"
                   size="sm"
-                  className="text-xs h-7"
+                  className="text-xs h-7 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 border-indigo-500/30 text-indigo-300 hover:from-indigo-600/40 hover:to-purple-600/40 hover:border-indigo-400 hover:text-white transition-all duration-200"
                   onClick={() => handleSuggestionClick(suggestion)}
                 >
                   {suggestion}
@@ -295,17 +226,17 @@ export function ChatPanel({ onFileUpload, hasContent, fileType, className }: Cha
       )}
 
       {/* Input */}
-      <div className="p-4 border-t border-gray-200 bg-gray-50">
+      <div className="p-4 border-t border-[#2A2A2A] bg-gradient-to-r from-[#1E1E1E] to-[#2A2A2A]">
         <div className="flex space-x-3">
           <div className="flex-1">
             <Textarea
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               placeholder={hasContent 
-                ? `Ask me to improve your ${fileType} resume...`
+                ? "Ask me to improve your PDF resume..."
                 : "Upload your resume or ask me anything..."
               }
-              className="min-h-[44px] max-h-32 resize-none"
+              className="min-h-[44px] max-h-32 resize-none bg-black/50 border-[#2A2A2A] text-white placeholder:text-[#B7B7B7] focus:border-indigo-500 focus:ring-indigo-500/20"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -318,13 +249,13 @@ export function ChatPanel({ onFileUpload, hasContent, fileType, className }: Cha
             onClick={handleSendMessage}
             disabled={!inputMessage.trim() || isTyping}
             size="sm"
-            className="h-11"
+            className="h-11 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:shadow-indigo-500/40 hover:scale-[1.02]"
           >
             <Send className="w-4 h-4" />
           </Button>
         </div>
         
-        <p className="text-xs text-gray-500 mt-2">
+        <p className="text-xs text-[#B7B7B7] mt-2">
           Press Enter to send, Shift+Enter for new line
         </p>
       </div>
