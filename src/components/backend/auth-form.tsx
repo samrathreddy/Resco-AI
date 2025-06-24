@@ -104,6 +104,8 @@ export function AuthForm({ mode }: AuthFormProps) {
         
         const result = await authApi.register(validatedData)
         
+        console.log('Registration result:', result)
+        
         if (!result.success || result.error) {
           authEvents.signupFailed(result.error || 'Registration failed')
           if (result.field) {
@@ -116,7 +118,8 @@ export function AuthForm({ mode }: AuthFormProps) {
           if (result.email_confirmation_required) {
             setGeneralError(result.message || 'Please check your email to verify your account.')
           } else {
-            router.push('/app')
+            // Force a page reload to ensure the user is properly authenticated
+            window.location.href = '/app'
           }
         }
       } else {
@@ -131,6 +134,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         const result = await authApi.login(validatedData)
         
         if (!result.success || result.error) {
+          console.log(result)
           authEvents.loginFailed(result.error || 'Login failed')
           if (result.field) {
             setErrors({ [result.field]: result.error || 'Login failed' })
@@ -143,6 +147,8 @@ export function AuthForm({ mode }: AuthFormProps) {
         }
       }
     } catch (error) {
+      console.log(error)
+      setGeneralError(error.message)
       if (error instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {}
         error.errors.forEach(err => {
